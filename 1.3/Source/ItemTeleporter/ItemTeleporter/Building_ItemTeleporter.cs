@@ -53,6 +53,7 @@ namespace ItemTeleporter
                                         newJob.targetQueueB[i] = newThing;
                                         FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
                                     }
+                                    break;
                                 }
                             }
                         }
