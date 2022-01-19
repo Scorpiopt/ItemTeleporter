@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <ThingDef Name="LWM_Skip"  ParentName="LWM_DeepStorage" ><!--Note: Name does NOT match defName: oops-->
+    <defName>IT_ItemTeleporter</defName>
+    <label>ItemTeleporter</label>
+    <description>PLACEHOLDER</description>
+	<thingClass>ItemTeleporter.Building_ItemTeleporter</thingClass>
+    <graphicData>
+      <texPath>skullywag/Skip/Skip</texPath>
+      <graphicClass>Graphic_Multi</graphicClass>
+      <drawSize>(3,2)</drawSize>
+    </graphicData>
+    <staticSunShadowHeight>0.5</staticSunShadowHeight>
+    <statBases>
+      <MaxHitPoints>250</MaxHitPoints>
+      <WorkToBuild>780</WorkToBuild>
+      <Flammability>0.1</Flammability>
+      <Beauty>-5</Beauty><!-- Let's be honest, this is probably low: ugly beat up dumpster -->
+      <Mass>5</Mass><!-- If you are dragging it around, let's pretend you fashion wheels for it, eh? -->
+    </statBases>
+	<size>(2, 2)</size>
+    <stuffCategories>
+      <li>Metallic</li>
+    </stuffCategories>
+    <costStuffCount>90</costStuffCount>
+    <building>
+      <ignoreStoredThingsBeauty>false</ignoreStoredThingsBeauty>
+      <preventDeteriorationOnTop>false</preventDeteriorationOnTop>
+      <fixedStorageSettings>
+        <filter>
+          <categories>
+            <li>Root</li>
+          </categories>
+        </filter>
+      </fixedStorageSettings>
+    </building>
+    <comps>
+      <li Class="LWM.DeepStorage.Properties" >
+        <maxNumberStacks>20</maxNumberStacks>
+        <minTimeStoringTakes>100</minTimeStoringTakes>
+        <!--Got to climb in, get it positioned right, etc-->
+        <additionalTimeStackSize>10</additionalTimeStackSize>
+        <!--Note: some things get stored quickly - see
+            the Patch folder for examples.  Bad Hygiene,
+            I think, does it?-->
+        <overlayType>SumOfAllItems</overlayType>
+      </li>
+    </comps>
+  </ThingDef>
+  
+</Defs>
