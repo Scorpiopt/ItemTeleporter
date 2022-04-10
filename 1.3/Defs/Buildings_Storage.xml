@@ -2,8 +2,8 @@
 <Defs>
   <ThingDef ParentName="LWM_DeepStorage">
     <defName>IT_ItemTeleporter</defName>
-    <label>ItemTeleporter</label>
-    <description>PLACEHOLDER</description>
+    <label>Item teleporter</label>
+    <description>Spacer technology allows you to teleport any item you need for crafting, without need of hauling things manually.</description>
 	<thingClass>ItemTeleporter.Building_ItemTeleporter</thingClass>
     <graphicData>
       <texPath>Things/Building/TeleportingShelf</texPath>
@@ -37,6 +37,10 @@
       </fixedStorageSettings>
     </building>
     <comps>
+      <li Class="CompProperties_Power">
+        <compClass>CompPowerTrader</compClass>
+        <basePowerConsumption>200</basePowerConsumption>
+      </li>
       <li Class="LWM.DeepStorage.Properties" >
         <maxNumberStacks>40</maxNumberStacks>
         <minTimeStoringTakes>100</minTimeStoringTakes>
@@ -48,6 +52,9 @@
         <overlayType>SumOfAllItems</overlayType>
       </li>
     </comps>
+    <researchPrerequisites>
+      <li>MicroelectronicsBasics</li>
+    </researchPrerequisites>
   </ThingDef>
   
 </Defs>

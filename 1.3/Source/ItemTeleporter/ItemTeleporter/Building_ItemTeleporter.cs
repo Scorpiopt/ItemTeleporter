@@ -26,45 +26,54 @@ namespace ItemTeleporter
         {
             if (newJob != null && newJob.def == JobDefOf.DoBill)
             {
-                var storagesAround = GenRadial.RadialDistinctThingsAround(newJob.targetA.Thing.Position, newJob.targetA.Thing.Map, 5, true).OfType<Building_ItemTeleporter>().ToList();
-                for (var i = 0; i < newJob.countQueue.Count; i++)
+                var storagesAround = GenRadial.RadialDistinctThingsAround(newJob.targetA.Thing.Position, newJob.targetA.Thing.Map, 5, true)
+                    .OfType<Building_ItemTeleporter>().Where(x => x.compPower.PowerOn).ToList();
+                if (storagesAround.Any())
                 {
-                    if (!newJob.targetQueueB[i].Thing.Position.GetThingList(newJob.targetA.Thing.Map).Any(x => x is Building_ItemTeleporter))
+                    for (var i = 0; i < newJob.countQueue.Count; i++)
                     {
-                        foreach (var storage in storagesAround)
+                        if (!newJob.targetQueueB[i].Thing.Position.GetThingList(newJob.targetA.Thing.Map).Any(x => x is Building_ItemTeleporter))
                         {
-                            if (storage.GetStoreSettings().AllowedToAccept(newJob.targetQueueB[i].Thing))
+                            foreach (var storage in storagesAround)
                             {
-                                var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x, newJob.targetA.Thing.Map, newJob.targetQueueB[i].Thing, ___pawn, ___pawn.Faction));
-                                if (goodCells.TryRandomElement(out var cell))
+                                if (storage.GetStoreSettings().AllowedToAccept(newJob.targetQueueB[i].Thing))
                                 {
-                                    var thing = newJob.targetQueueB[i].Thing;
-                                    if (thing.stackCount <= newJob.countQueue[i])
+                                    var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x, newJob.targetA.Thing.Map, newJob.targetQueueB[i].Thing, ___pawn, ___pawn.Faction));
+                                    if (goodCells.TryRandomElement(out var cell))
                                     {
-                                        thing.Position = cell;
-                                        FleckMaker.ThrowLightningGlow(thing.DrawPos, thing.Map, 0.5f);
+                                        var thing = newJob.targetQueueB[i].Thing;
+                                        if (thing.stackCount <= newJob.countQueue[i])
+                                        {
+                                            thing.Position = cell;
+                                            FleckMaker.ThrowLightningGlow(thing.DrawPos, thing.Map, 0.5f);
+                                        }
+                                        else if (thing.stackCount > newJob.countQueue[i])
+                                        {
+                                            var newThing = newJob.targetQueueB[i].Thing.SplitOff(newJob.countQueue[i]);
+                                            Log.Message(newThing.stackCount + " - " + newJob.countQueue[i]);
+                                            GenSpawn.Spawn(newThing, thing.Position, thing.Map);
+                                            newThing.Position = cell;
+                                            newJob.targetQueueB[i] = newThing;
+                                            FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
+                                        }
+                                        break;
                                     }
-                                    else if (thing.stackCount > newJob.countQueue[i])
-                                    {
-                                        var newThing = newJob.targetQueueB[i].Thing.SplitOff(newJob.countQueue[i]);
-                                        Log.Message(newThing.stackCount + " - " + newJob.countQueue[i]);
-                                        GenSpawn.Spawn(newThing, thing.Position, thing.Map);
-                                        newThing.Position = cell;
-                                        newJob.targetQueueB[i] = newThing;
-                                        FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
-                                    }
-                                    break;
                                 }
                             }
                         }
                     }
                 }
-            }
+             }
         }
     }
 
     public class Building_ItemTeleporter : Building_Storage
     {
-
+        public CompPowerTrader compPower;
+        public override void SpawnSetup(Map map, bool respawningAfterLoad)
+        {
+            base.SpawnSetup(map, respawningAfterLoad);
+            compPower = base.GetComp<CompPowerTrader>();
+        }
     }
 }
