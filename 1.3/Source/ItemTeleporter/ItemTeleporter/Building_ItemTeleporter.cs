@@ -50,7 +50,6 @@ namespace ItemTeleporter
                                         else if (thing.stackCount > newJob.countQueue[i])
                                         {
                                             var newThing = newJob.targetQueueB[i].Thing.SplitOff(newJob.countQueue[i]);
-                                            Log.Message(newThing.stackCount + " - " + newJob.countQueue[i]);
                                             GenSpawn.Spawn(newThing, thing.Position, thing.Map);
                                             newThing.Position = cell;
                                             newJob.targetQueueB[i] = newThing;
