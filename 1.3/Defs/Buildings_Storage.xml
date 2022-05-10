@@ -30,6 +30,7 @@
       <preventDeteriorationOnTop>false</preventDeteriorationOnTop>
       <fixedStorageSettings>
         <filter>
+          <disallowNotEverStorable>true</disallowNotEverStorable>
           <categories>
             <li>Root</li>
           </categories>
