@@ -18,8 +18,28 @@ namespace ItemTeleporter
         static ItemTeleporterStartup()
         {
             new Harmony("ItemTeleporter.Mod").PatchAll();
+            Debug();
+        }
+
+        public static void Debug()
+        {
+            foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
+            {
+                for (int j = 0; j < thingDef.AllRecipes.Count; j++)
+                {
+                    RecipeDef recipeDef = thingDef.AllRecipes[j];
+                    foreach (var product in recipeDef.products)
+                    {
+                        if (product.thingDef is null)
+                        {
+                            Log.Error(recipeDef + " has an empty product, it will error out on map loading.");
+                        }
+                    }
+                }
+            }
         }
     }
+
 
     [HarmonyPatch(typeof(GenSpawn), "Spawn", new System.Type[] { typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool) })]
     public static class GenSpawn_Spawn_Patch
@@ -32,7 +52,7 @@ namespace ItemTeleporter
                 {
                     return;
                 }
-                if (!__result.Map.reservationManager.IsReservedByAnyoneOf(__result, Faction.OfPlayer) 
+                if (!__result.Map.reservationManager.IsReservedByAnyoneOf(__result, Faction.OfPlayer)
                     && !__result.Map.physicalInteractionReservationManager.IsReserved(__result))
                 {
                     var storages = list.Where(x => x.compPower.PowerOn).OrderByDescending(x => x.GetStoreSettings().Priority)
@@ -66,7 +86,7 @@ namespace ItemTeleporter
         {
             if (newJob != null && newJob.def == JobDefOf.DoBill && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list))
             {
-                var storagesAround = list.Where(x => x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 5f 
+                var storagesAround = list.Where(x => x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 5f
                     && x.compPower.PowerOn).OrderBy(x => x.Position.DistanceTo(newJob.targetA.Thing.Position)).ToList();
                 if (storagesAround.Any())
                 {
@@ -79,7 +99,7 @@ namespace ItemTeleporter
                             {
                                 if (storage.GetStoreSettings().AllowedToAccept(newJob.targetQueueB[i].Thing))
                                 {
-                                    var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x, 
+                                    var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x,
                                         newJob.targetA.Thing.Map, newJob.targetQueueB[i].Thing, ___pawn, ___pawn.Faction));
                                     if (goodCells.TryRandomElement(out var cell))
                                     {
@@ -104,7 +124,34 @@ namespace ItemTeleporter
                         }
                     }
                 }
-             }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(SteadyEnvironmentEffects), "TryDoDeteriorate")]
+    public static class TryDoDeteriorate_Patch
+    {
+        public static bool Prefix(Thing t, bool roofed, bool roomUsesOutdoorTemperature, bool protectedByEdifice, TerrainDef terrain)
+        {
+            if (t?.Map != null && t.Position.GetFirstThing<Building_ItemTeleporter>(t.Map) != null)
+            {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(CompRottable), "Active", MethodType.Getter)]
+    public static class Active_Patch
+    {
+        public static bool Prefix(CompRottable __instance, ref bool __result)
+        {
+            if (__instance.parent?.Map != null && __instance.parent.Position.GetFirstThing<Building_ItemTeleporter>(__instance.parent.Map) != null)
+            {
+                __result = false;
+                return false;
+            }
+            return true;
         }
     }
 
