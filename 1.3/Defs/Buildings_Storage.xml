@@ -50,7 +50,8 @@
         <!--Note: some things get stored quickly - see
             the Patch folder for examples.  Bad Hygiene,
             I think, does it?-->
-        <overlayType>SumOfAllItems</overlayType>
+		<overlayType>Normal</overlayType>
+		<showContents>false</showContents>
       </li>
     </comps>
     <researchPrerequisites>
