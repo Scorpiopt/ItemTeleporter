@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UIElements;
 using Verse;
 using Verse.AI;
@@ -41,43 +42,43 @@ namespace ItemTeleporter
     }
 
 
-    [HarmonyPatch(typeof(GenSpawn), "Spawn", new System.Type[] { typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool) })]
-    public static class GenSpawn_Spawn_Patch
-    {
-        public static void Postfix(Thing __result, bool respawningAfterLoad)
-        {
-            if (Building_ItemTeleporter.buildings.TryGetValue(__result.Map, out var list))
-            {
-                if (__result is Plant || __result is Building || __result is UnfinishedThing)
-                {
-                    return;
-                }
-                if (!__result.Map.reservationManager.IsReservedByAnyoneOf(__result, Faction.OfPlayer)
-                    && !__result.Map.physicalInteractionReservationManager.IsReserved(__result))
-                {
-                    var storages = list.Where(x => x.compPower.PowerOn).OrderByDescending(x => x.GetStoreSettings().Priority)
-                        .ThenBy(x => x.Position.DistanceTo(__result.Position)).ToList();
-                    if (!__result.Position.GetThingList(__result.Map).Any(x => x is Building_ItemTeleporter))
-                    {
-                        foreach (var storage in storages)
-                        {
-                            if (storage.GetStoreSettings().AllowedToAccept(__result))
-                            {
-                                var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x,
-                                    __result.Map, __result, null, Faction.OfPlayer));
-                                if (goodCells.TryRandomElement(out var cell))
-                                {
-                                    __result.Position = cell;
-                                    FleckMaker.ThrowLightningGlow(__result.DrawPos, __result.Map, 0.5f);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(GenSpawn), "Spawn", new System.Type[] { typeof(Thing), typeof(IntVec3), typeof(Map), typeof(Rot4), typeof(WipeMode), typeof(bool) })]
+    //public static class GenSpawn_Spawn_Patch
+    //{
+    //    public static void Postfix(Thing __result, bool respawningAfterLoad)
+    //    {
+    //        if (Building_ItemTeleporter.buildings.TryGetValue(__result.Map, out var list))
+    //        {
+    //            if (__result is Plant || __result is Building || __result is UnfinishedThing)
+    //            {
+    //                return;
+    //            }
+    //            if (!__result.Map.reservationManager.IsReservedByAnyoneOf(__result, Faction.OfPlayer)
+    //                && !__result.Map.physicalInteractionReservationManager.IsReserved(__result))
+    //            {
+    //                var storages = list.Where(x => x.compPower.PowerOn).OrderByDescending(x => x.GetStoreSettings().Priority)
+    //                    .ThenBy(x => x.Position.DistanceTo(__result.Position)).ToList();
+    //                if (!__result.Position.GetThingList(__result.Map).Any(x => x is Building_ItemTeleporter))
+    //                {
+    //                    foreach (var storage in storages)
+    //                    {
+    //                        if (storage.GetStoreSettings().AllowedToAccept(__result))
+    //                        {
+    //                            var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x,
+    //                                __result.Map, __result, null, Faction.OfPlayer));
+    //                            if (goodCells.TryRandomElement(out var cell))
+    //                            {
+    //                                __result.Position = cell;
+    //                                FleckMaker.ThrowLightningGlow(__result.DrawPos, __result.Map, 0.5f);
+    //                                break;
+    //                            }
+    //                        }
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     [HarmonyPatch(typeof(Pawn_JobTracker), "StartJob")]
     public static class Pawn_JobTracker_StartJob_Patch
@@ -86,7 +87,7 @@ namespace ItemTeleporter
         {
             if (newJob != null && newJob.def == JobDefOf.DoBill && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list))
             {
-                var storagesAround = list.Where(x => x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 5f
+                var storagesAround = list.Where(x => x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 10f
                     && x.compPower.PowerOn).OrderBy(x => x.Position.DistanceTo(newJob.targetA.Thing.Position)).ToList();
                 if (storagesAround.Any())
                 {
@@ -125,6 +126,24 @@ namespace ItemTeleporter
                     }
                 }
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(PawnRenderer), "RenderPawnInternal")]
+    public static class PawnRenderer_RenderPawnInternal_Patch
+    {
+        [HarmonyBefore(new string[] { "rimworld.Nals.FacialAnimation" })]
+        static bool Prefix(PawnRenderer __instance, ref Vector3 rootLoc, PawnRenderFlags flags)
+        {
+            if (!flags.FlagSet(PawnRenderFlags.Portrait))
+            {
+                Pawn ___pawn = __instance.graphics.pawn;
+                if (___pawn.Dead && ___pawn.Corpse.Position.GetFirstThing<Building_ItemTeleporter>(___pawn.Corpse.Map) != null)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 

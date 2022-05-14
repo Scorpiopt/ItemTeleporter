@@ -43,7 +43,7 @@
         <basePowerConsumption>200</basePowerConsumption>
       </li>
       <li Class="LWM.DeepStorage.Properties" >
-        <maxNumberStacks>40</maxNumberStacks>
+        <maxNumberStacks>60</maxNumberStacks>
         <minTimeStoringTakes>100</minTimeStoringTakes>
         <!--Got to climb in, get it positioned right, etc-->
         <additionalTimeStackSize>10</additionalTimeStackSize>
