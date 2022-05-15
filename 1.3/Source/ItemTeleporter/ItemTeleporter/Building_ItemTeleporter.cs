@@ -19,25 +19,6 @@ namespace ItemTeleporter
         static ItemTeleporterStartup()
         {
             new Harmony("ItemTeleporter.Mod").PatchAll();
-            Debug();
-        }
-
-        public static void Debug()
-        {
-            foreach (var thingDef in DefDatabase<ThingDef>.AllDefs)
-            {
-                for (int j = 0; j < thingDef.AllRecipes.Count; j++)
-                {
-                    RecipeDef recipeDef = thingDef.AllRecipes[j];
-                    foreach (var product in recipeDef.products)
-                    {
-                        if (product.thingDef is null)
-                        {
-                            Log.Error(recipeDef + " has an empty product, it will error out on map loading.");
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -138,7 +119,7 @@ namespace ItemTeleporter
             if (!flags.FlagSet(PawnRenderFlags.Portrait))
             {
                 Pawn ___pawn = __instance.graphics.pawn;
-                if (___pawn.Dead && ___pawn.Corpse.Position.GetFirstThing<Building_ItemTeleporter>(___pawn.Corpse.Map) != null)
+                if (___pawn.Dead && (___pawn.Corpse?.Spawned ?? false) && ___pawn.Corpse.Position.GetFirstThing<Building_ItemTeleporter>(___pawn.Corpse.Map) != null)
                 {
                     return false;
                 }
@@ -152,9 +133,13 @@ namespace ItemTeleporter
     {
         public static bool Prefix(Thing t, bool roofed, bool roomUsesOutdoorTemperature, bool protectedByEdifice, TerrainDef terrain)
         {
-            if (t?.Map != null && t.Position.GetFirstThing<Building_ItemTeleporter>(t.Map) != null)
+            if (t?.Map != null)
             {
-                return false;
+                var itemTeleporter = t.Position.GetFirstThing<Building_ItemTeleporter>(t.Map);
+                if (itemTeleporter != null && itemTeleporter.compPower.PowerOn)
+                {
+                    return false;
+                }
             }
             return true;
         }
@@ -165,10 +150,14 @@ namespace ItemTeleporter
     {
         public static bool Prefix(CompRottable __instance, ref bool __result)
         {
-            if (__instance.parent?.Map != null && __instance.parent.Position.GetFirstThing<Building_ItemTeleporter>(__instance.parent.Map) != null)
+            if (__instance.parent?.Map != null)
             {
-                __result = false;
-                return false;
+                var itemTeleporter = __instance.parent.Position.GetFirstThing<Building_ItemTeleporter>(__instance.parent.Map);
+                if (itemTeleporter != null && itemTeleporter.compPower.PowerOn)
+                {
+                    __result = false;
+                    return false;
+                }
             }
             return true;
         }
