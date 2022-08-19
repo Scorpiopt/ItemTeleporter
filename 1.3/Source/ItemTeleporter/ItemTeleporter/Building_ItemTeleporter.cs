@@ -137,6 +137,7 @@ namespace ItemTeleporter
                                             newThing.Position = cell;
                                             FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
                                         }
+                                        ___pawn.ClearReservationsForJob(newJob);
                                         return false;
                                     }
                                 }
