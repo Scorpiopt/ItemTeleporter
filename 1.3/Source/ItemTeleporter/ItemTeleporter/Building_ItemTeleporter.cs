@@ -64,42 +64,80 @@ namespace ItemTeleporter
     [HarmonyPatch(typeof(Pawn_JobTracker), "StartJob")]
     public static class Pawn_JobTracker_StartJob_Patch
     {
-        public static void Prefix(Pawn ___pawn, Job newJob, JobCondition lastJobEndCondition = JobCondition.None, ThinkNode jobGiver = null, bool resumeCurJobAfterwards = false, bool cancelBusyStances = true, ThinkTreeDef thinkTree = null, JobTag? tag = null, bool fromQueue = false, bool canReturnCurJobToPool = false)
+        public static bool Prefix(Pawn ___pawn, Job newJob, JobCondition lastJobEndCondition = JobCondition.None, ThinkNode jobGiver = null, bool resumeCurJobAfterwards = false, bool cancelBusyStances = true, ThinkTreeDef thinkTree = null, JobTag? tag = null, bool fromQueue = false, bool canReturnCurJobToPool = false)
         {
-            if (newJob != null && newJob.def == JobDefOf.DoBill && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list))
+            if (newJob != null)
             {
-                var storagesAround = list.Where(x => x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 10f
-                    && x.compPower.PowerOn).OrderBy(x => x.Position.DistanceTo(newJob.targetA.Thing.Position)).ToList();
-                if (storagesAround.Any())
+                if (newJob.def == JobDefOf.DoBill && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list))
                 {
-                    for (var i = 0; i < newJob.countQueue.Count; i++)
+                    var storagesAround = list.Where(x => x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 10f
+                        && x.compPower.PowerOn).OrderBy(x => x.Position.DistanceTo(newJob.targetA.Thing.Position)).ToList();
+                    if (storagesAround.Any())
                     {
-                        if (!newJob.targetQueueB[i].Thing.Position.GetThingList(newJob.targetA.Thing.Map)
-                            .Any(x => x is Building_ItemTeleporter))
+                        for (var i = 0; i < newJob.countQueue.Count; i++)
+                        {
+                            if (!newJob.targetQueueB[i].Thing.Position.GetThingList(newJob.targetA.Thing.Map)
+                                .Any(x => x is Building_ItemTeleporter))
+                            {
+                                foreach (var storage in storagesAround)
+                                {
+                                    if (storage.GetStoreSettings().AllowedToAccept(newJob.targetQueueB[i].Thing))
+                                    {
+                                        var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x,
+                                            newJob.targetA.Thing.Map, newJob.targetQueueB[i].Thing, ___pawn, ___pawn.Faction));
+                                        if (goodCells.TryRandomElement(out var cell))
+                                        {
+                                            var thing = newJob.targetQueueB[i].Thing;
+                                            if (thing.stackCount <= newJob.countQueue[i])
+                                            {
+                                                thing.Position = cell;
+                                                FleckMaker.ThrowLightningGlow(thing.DrawPos, thing.Map, 0.5f);
+                                            }
+                                            else if (thing.stackCount > newJob.countQueue[i])
+                                            {
+                                                var newThing = newJob.targetQueueB[i].Thing.SplitOff(newJob.countQueue[i]);
+                                                GenSpawn.Spawn(newThing, cell, thing.Map);
+                                                newThing.Position = cell;
+                                                newJob.targetQueueB[i] = newThing;
+                                                FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (newJob.def == JobDefOf.HaulToCell && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list2))
+                {
+                    var thing = newJob.targetA.Thing;
+                    if (thing.Position.GetFirstThing<Building_ItemTeleporter>(thing.Map) is null)
+                    {
+                        var storagesAround = list2.Where(x => x.compPower.PowerOn).OrderBy(x => x.Position.DistanceTo(thing.Position)).ToList();
+                        if (storagesAround.Any())
                         {
                             foreach (var storage in storagesAround)
                             {
-                                if (storage.GetStoreSettings().AllowedToAccept(newJob.targetQueueB[i].Thing))
+                                if (storage.GetStoreSettings().AllowedToAccept(newJob.targetA.Thing))
                                 {
                                     var goodCells = storage.AllSlotCells().Where(x => StoreUtility.IsGoodStoreCell(x,
-                                        newJob.targetA.Thing.Map, newJob.targetQueueB[i].Thing, ___pawn, ___pawn.Faction));
+                                        thing.Map, thing, ___pawn, ___pawn.Faction));
                                     if (goodCells.TryRandomElement(out var cell))
                                     {
-                                        var thing = newJob.targetQueueB[i].Thing;
-                                        if (thing.stackCount <= newJob.countQueue[i])
+                                        if (thing.stackCount <= newJob.count)
                                         {
                                             thing.Position = cell;
                                             FleckMaker.ThrowLightningGlow(thing.DrawPos, thing.Map, 0.5f);
                                         }
-                                        else if (thing.stackCount > newJob.countQueue[i])
+                                        else if (thing.stackCount > newJob.count)
                                         {
-                                            var newThing = newJob.targetQueueB[i].Thing.SplitOff(newJob.countQueue[i]);
-                                            GenSpawn.Spawn(newThing, thing.Position, thing.Map);
+                                            var newThing = thing.SplitOff(newJob.count);
+                                            GenSpawn.Spawn(newThing, cell, thing.Map);
                                             newThing.Position = cell;
-                                            newJob.targetQueueB[i] = newThing;
                                             FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
                                         }
-                                        break;
+                                        return false;
                                     }
                                 }
                             }
@@ -107,6 +145,7 @@ namespace ItemTeleporter
                     }
                 }
             }
+            return true;
         }
     }
 
