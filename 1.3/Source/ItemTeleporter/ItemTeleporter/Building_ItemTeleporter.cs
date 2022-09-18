@@ -151,10 +151,6 @@ namespace ItemTeleporter
                             }
                         }
                     }
-                    else
-                    {
-                        Log.Message("allThings: " + String.Join(", ", allThings));
-                    }
                 }
             }
             return true;
