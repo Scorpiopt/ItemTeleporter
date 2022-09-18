@@ -70,8 +70,9 @@ namespace ItemTeleporter
             {
                 if (newJob.def == JobDefOf.DoBill && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list))
                 {
-                    var storagesAround = list.Where(x => x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 10f
-                        && x.compPower.PowerOn).OrderBy(x => x.Position.DistanceTo(newJob.targetA.Thing.Position)).ToList();
+                    var storagesAround = list.Where(x => x.compPower.PowerOn && x.billInterceptionEnabled &&
+                        x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 10f)
+                        .OrderBy(x => x.Position.DistanceTo(newJob.targetA.Thing.Position)).ToList();
                     if (storagesAround.Any())
                     {
                         for (var i = 0; i < newJob.countQueue.Count; i++)
@@ -109,12 +110,18 @@ namespace ItemTeleporter
                         }
                     }
                 }
-                else if (newJob.def == JobDefOf.HaulToCell && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list2))
+                else if (newJob.def == JobDefOf.HaulToCell 
+                    && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out var list2))
                 {
                     var thing = newJob.targetA.Thing;
-                    if (thing.Position.GetFirstThing<Building_ItemTeleporter>(thing.Map) is null)
+                    var cellForHauling = newJob.targetB.Cell;
+                    var slotGroup = cellForHauling.GetSlotGroup(___pawn.Map);
+                    var allThings = thing.Position.GetThingList(thing.Map);
+                    if (allThings.Any(x => x is Building_ItemTeleporter) is false)
                     {
-                        var storagesAround = list2.Where(x => x.compPower.PowerOn).OrderBy(x => x.Position.DistanceTo(thing.Position)).ToList();
+                        var storagesAround = list2.Where(x => x.compPower.PowerOn && x.haulingInterceptionEnabled &&
+                            (slotGroup is null || slotGroup.Settings.Priority < x.GetStoreSettings().Priority))
+                            .OrderBy(x => x.Position.DistanceTo(thing.Position)).ToList();
                         if (storagesAround.Any())
                         {
                             foreach (var storage in storagesAround)
@@ -143,6 +150,10 @@ namespace ItemTeleporter
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        Log.Message("allThings: " + String.Join(", ", allThings));
                     }
                 }
             }
@@ -208,6 +219,8 @@ namespace ItemTeleporter
 
         public static Dictionary<Map, HashSet<Building_ItemTeleporter>> buildings = new Dictionary<Map, HashSet<Building_ItemTeleporter>>();
         public CompPowerTrader compPower;
+        public bool haulingInterceptionEnabled = true;
+        public bool billInterceptionEnabled = true;
         public override void SpawnSetup(Map map, bool respawningAfterLoad)
         {
             base.SpawnSetup(map, respawningAfterLoad);
@@ -235,6 +248,41 @@ namespace ItemTeleporter
                 list.Remove(this);
             }
             base.Destroy(mode);
+        }
+
+        public override IEnumerable<Gizmo> GetGizmos()
+        {
+            foreach (var g in base.GetGizmos())
+            {
+                yield return g;
+            }
+            if (this.Faction == Faction.OfPlayer)
+            {
+                yield return new Command_Toggle
+                {
+                    defaultLabel = "IT.EnableBillInterception".Translate(),
+                    defaultDesc = "IT.EnableBillInterceptionDesc".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("UI/Icons/EnableBillInterception"),
+                    isActive = () => billInterceptionEnabled,
+                    toggleAction = () => billInterceptionEnabled = !billInterceptionEnabled,
+                };
+
+                yield return new Command_Toggle
+                {
+                    defaultLabel = "IT.EnableHaulingInterception".Translate(),
+                    defaultDesc = "IT.EnableHaulingInterceptionDesc".Translate(),
+                    icon = ContentFinder<Texture2D>.Get("UI/Icons/EnableHaulingInterception"),
+                    isActive = () => haulingInterceptionEnabled,
+                    toggleAction = () => haulingInterceptionEnabled = !haulingInterceptionEnabled,
+                };
+            }
+        }
+
+        public override void ExposeData()
+        {
+            base.ExposeData();
+            Scribe_Values.Look(ref haulingInterceptionEnabled, "haulingInterceptionEnabled", true);
+            Scribe_Values.Look(ref billInterceptionEnabled, "billInterceptionEnabled", true);
         }
     }
 }

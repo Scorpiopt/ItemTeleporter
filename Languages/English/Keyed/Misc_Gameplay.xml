@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<IT.EnableBillInterception>Enable bill interception</IT.EnableBillInterception>
+	<IT.EnableBillInterceptionDesc>Intercept bill materials to be hauled and teleport them.</IT.EnableBillInterceptionDesc>
+	
+	<IT.EnableHaulingInterception>Enable hauling interception</IT.EnableHaulingInterception>
+	<IT.EnableHaulingInterceptionDesc>Intercept things for hauling and teleport them.</IT.EnableHaulingInterceptionDesc>
+	
+</LanguageData>
