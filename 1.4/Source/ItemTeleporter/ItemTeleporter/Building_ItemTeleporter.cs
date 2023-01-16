@@ -58,7 +58,7 @@ namespace ItemTeleporter
         {
             if (newJob != null)
             {
-                if (newJob.def == JobDefOf.DoBill && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out HashSet<Building_ItemTeleporter> list))
+                if (newJob.def == JobDefOf.DoBill && newJob.countQueue != null && newJob.targetQueueB != null && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out HashSet<Building_ItemTeleporter> list))
                 {
                     List<Building_ItemTeleporter> storagesAround = list.Where(x => x.compPower.PowerOn && x.billInterceptionEnabled &&
                         x.Position.DistanceTo(newJob.targetA.Thing.Position) <= 10f)
