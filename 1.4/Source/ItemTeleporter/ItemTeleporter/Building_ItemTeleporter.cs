@@ -22,7 +22,7 @@ namespace ItemTeleporter
     {
         private static bool Prefix(Thing __instance)
         {
-            if (!(__instance is Building_ItemTeleporter))
+            if (!(__instance is Building_ItemTeleporter) && __instance.Map != null)
             {
                 Building_ItemTeleporter firstItem = __instance.Position.GetFirstThing<Building_ItemTeleporter>(__instance.Map);
                 if (firstItem != null)
