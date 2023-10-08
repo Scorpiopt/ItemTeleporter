@@ -104,8 +104,14 @@ namespace ItemTeleporter
                     && Building_ItemTeleporter.buildings.TryGetValue(___pawn.Map, out HashSet<Building_ItemTeleporter> list2))
                 {
                     Thing thing = newJob.targetA.Thing;
+                    SlotGroup thingSlotGroup = thing.Position.GetSlotGroup(___pawn.Map);
                     IntVec3 cellForHauling = newJob.targetB.Cell;
                     SlotGroup slotGroup = cellForHauling.GetSlotGroup(___pawn.Map);
+                    if (thingSlotGroup != null && slotGroup != null && slotGroup.parent == thingSlotGroup.parent)
+                    {
+                        return true;
+                    }
+
                     List<Thing> allThings = thing.Position.GetThingList(thing.Map);
                     if (allThings.Any(x => x is Building_ItemTeleporter) is false)
                     {
