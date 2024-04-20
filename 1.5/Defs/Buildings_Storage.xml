@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+	<ThingDef Name="IT_ItemTeleporterBase" ParentName="FurnitureWithQualityBase" Abstract="True">
+		<thingClass>Building_Storage</thingClass>
+		<altitudeLayer>Building</altitudeLayer>
+		<passability>PassThroughOnly</passability>
+		<fillPercent>0.4</fillPercent>
+		<castEdgeShadows>true</castEdgeShadows>
+		<pathCost>50</pathCost>
+		<defaultPlacingRot>South</defaultPlacingRot>
+		<statBases>
+			<Flammability>1.0</Flammability>
+			<Beauty>0.5</Beauty>
+		</statBases>
+		<building>
+			<fixedStorageSettings>
+				<filter>
+					<disallowNotEverStorable>true</disallowNotEverStorable>
+					<categories>
+						<li>Root</li>
+					</categories>
+				</filter>
+			</fixedStorageSettings>
+			<preventDeteriorationOnTop>true</preventDeteriorationOnTop>
+			<ignoreStoredThingsBeauty>true</ignoreStoredThingsBeauty>
+			<maxItemsInCell>60</maxItemsInCell>
+			<blueprintClass>Blueprint_Storage</blueprintClass>
+			<defaultStorageSettings>
+				<priority>Preferred</priority>
+				<filter>
+					<categories>
+						<li>Foods</li>
+						<li>Manufactured</li>
+						<li>ResourcesRaw</li>
+						<li>Items</li>
+						<li>Weapons</li>
+						<li>Apparel</li>
+						<li>BodyParts</li>
+					</categories>
+				</filter>
+			</defaultStorageSettings>
+		</building>
+		<inspectorTabs>
+			<li>ITab_Storage</li>
+		</inspectorTabs>
+		<staticSunShadowHeight>0.5</staticSunShadowHeight>
+		<surfaceType>Item</surfaceType>
+		<canOverlapZones>false</canOverlapZones>
+	</ThingDef>
+
+	<ThingDef ParentName="IT_ItemTeleporterBase">
+		<defName>IT_ItemTeleporter</defName>
+		<label>Item teleporter</label>
+		<description>Spacer technology allows you to teleport any item you need for crafting, without need of hauling things manually.</description>
+		<thingClass>ItemTeleporter.Building_ItemTeleporter</thingClass>
+		<graphicData>
+			<texPath>Things/Building/TeleportingShelf</texPath>
+			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(3,2)</drawSize>
+		</graphicData>
+		<staticSunShadowHeight>0.5</staticSunShadowHeight>
+		<statBases>
+			<MaxHitPoints>250</MaxHitPoints>
+			<WorkToBuild>780</WorkToBuild>
+			<Flammability>0.1</Flammability>
+			<Mass>5</Mass>
+		</statBases>
+		<size>(2, 1)</size>
+		<costList>
+			<Plasteel>20</Plasteel>
+			<ComponentSpacer>10</ComponentSpacer>
+			<ComponentIndustrial>10</ComponentIndustrial>
+			<Gold>30</Gold>
+		</costList>
+		<comps>
+			<li Class="CompProperties_Power">
+				<compClass>CompPowerTrader</compClass>
+				<basePowerConsumption>200</basePowerConsumption>
+			</li>
+		</comps>
+		<researchPrerequisites>
+			<li>MicroelectronicsBasics</li>
+		</researchPrerequisites>
+	</ThingDef>
+
+</Defs>
