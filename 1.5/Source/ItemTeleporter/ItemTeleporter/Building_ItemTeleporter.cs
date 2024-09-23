@@ -81,14 +81,14 @@ namespace ItemTeleporter
                                             Thing thing = newJob.targetQueueB[i].Thing;
                                             if (thing.stackCount <= newJob.countQueue[i])
                                             {
-                                                thing.Position = cell;
+                                                thing.DeSpawn();
+                                                GenSpawn.Spawn(thing, cell, ___pawn.Map);
                                                 FleckMaker.ThrowLightningGlow(thing.DrawPos, thing.Map, 0.5f);
                                             }
                                             else if (thing.stackCount > newJob.countQueue[i])
                                             {
                                                 Thing newThing = newJob.targetQueueB[i].Thing.SplitOff(newJob.countQueue[i]);
                                                 GenSpawn.Spawn(newThing, cell, thing.Map);
-                                                newThing.Position = cell;
                                                 newJob.targetQueueB[i] = newThing;
                                                 FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
                                             }
@@ -127,14 +127,14 @@ namespace ItemTeleporter
                                 {
                                     if (thing.stackCount <= newJob.count)
                                     {
-                                        thing.Position = cell;
+                                        thing.DeSpawn();
+                                        GenSpawn.Spawn(thing, cell, ___pawn.Map);
                                         FleckMaker.ThrowLightningGlow(thing.DrawPos, thing.Map, 0.5f);
                                     }
                                     else if (thing.stackCount > newJob.count)
                                     {
                                         Thing newThing = thing.SplitOff(newJob.count);
                                         GenSpawn.Spawn(newThing, cell, thing.Map);
-                                        newThing.Position = cell;
                                         FleckMaker.ThrowLightningGlow(newThing.DrawPos, newThing.Map, 0.5f);
                                     }
                                     ___pawn.ClearReservationsForJob(newJob);
